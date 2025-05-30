@@ -1,52 +1,58 @@
 # Overview
 
-This project is practice project to utilize VectorDB to query related documents, Then use this to build the RAG-prompts for LLM.
+This project is a practice project designed to utilize VectorDB for querying related documents. The retrieved documents are then used to build RAG prompts for the LLM.
 
-## Prerequisition
- - (Recommend) Mini Conda: to run multiple Python environment in your machine (like NVM)
- - Ollama with `llama 3.2` model installed: use to create simple Chatbot.
- - Docker Desktop: To run PostgreSQL Server with VectorDB plugin
- - Basic knowledge of PostgreSQL DB: to create database, run the SQL
+## Prerequisites:
+- **(Recommended)** Mini Conda: Allows you to run multiple Python environments on your machine (similar to NVM).
+- **Ollama with `llama 3.2` model installed**: Used to create a simple chatbot.
+- **Docker Desktop**: Required to run a PostgreSQL Server with the VectorDB plugin.
+- **Basic knowledge of PostgreSQL**: Enables you to create databases and execute SQL queries.
 
-## Project structure
- - `main.py`: Interactive demo
- - `scrape.py`: Scrapper to download the documents from MycosTech website. Also, clean the HTML tag.
- - `insert-vector-db.py`: To transform the downloaded documents in to embedding Vector, then insert to Vector DB.
- - `visualize.py`: Visualizer the embedding vectors in 2D plot with PCA (Principal Component Analysis).
- - `visualize-umap.py`: Visualizer the embedding vectors in 2D plot with UMAP (better algorithm than PCA for non-linear data).
+## Project Structure
+- `main.py`: Interactive demo.
+- `scrape.py`: Scraper that downloads documents from a website and cleans HTML tags.
+- `insert-vector-db.py`: Transforms downloaded documents into embedding vectors, then inserts them into a VectorDB.
+- `visualize.py`: Visualizes embedding vectors in a 2D plot using PCA (Principal Component Analysis).
+- `visualize-umap.py`: Visualizes embedding vectors in a 2D plot using UMAP (a better algorithm than PCA for non-linear data).
 
-## Install packages
+## Install Packages
 
-This guide assumes you have conda install. For who are familiar with python, you may skip this guide by simply install the required packaged from `requirements.txt`. But, if you aren't, here is the beginner guideline for you!
+This guide assumes that you have Conda installed. If you're already familiar with Python, you can skip this guide and simply install the required packages from `requirements.txt`. However, if you're new to Python, here's a beginner-friendly guideline for you!
 
-First, we're going to create new environment to run this project. Like Node.JS, .NET, we recommended using at least one environment per Python project.
-From anaconda console, in Windows, you can go with `Start > Anaconda Prompt (miniconda3)`
+First, we'll create a new environment to run this project. Like Node.js or .NET, we recommend using a separate environment for each Python project. 
+
+On Windows, open the Anaconda console by navigating to:
+`Start > Anaconda Prompt (miniconda3)`
+
+Run the following command to create a new environment:
 
 ```
 conda create -n mycos-guide-chatbot python=3.12
 ```
 
-This will create environment named `mycos-guide-chatbot`. Everytime, we want to switch the enviroment we can use following command
+This will create an environment named `mycos-guide-chatbot`. Whenever you want to switch to this environment, use the following command:
 
 ```
 conda activate mycos-guide-chatbot
 ```
 
-To install require packages, you can run
+To install the required packages, run:
 
 ```
 pip install -r requirements.txt
 ```
 
-## Run and create Vector DB
+## Run and Create a VectorDB
 
-This repo has prepared the docker compose script to start PostgreSQL DB with Vector support, you can run it with
+This repository includes a Docker Compose script to start a PostgreSQL database with Vector support. You can run it using the following command:
 
 ```
 docker compose up -d
 ```
 
-Then, Use any Postgres DB connector connect to 
+This will run PostgreSQL DB which can be accessed on `localhost`, port `10080` with username = `postgres`, password = `password`
+
+Then, use any PostgreSQL DB connector to connect to the database `mycos_website_db`, then run this below script.
 
 ```sql
 -- activate `vector` extensions on current database
@@ -60,9 +66,9 @@ CREATE TABLE documents (
 );
 ```
 
-## Create setting file
+## Create a Configuration File
 
-Let's create setting `config.json` on the root folder
+Create a `config.json` file in the root folder. This file is required by the Python scripts in this project.
 
 ```
 {
@@ -70,38 +76,38 @@ Let's create setting `config.json` on the root folder
 }
 ```
 
-## To run the project
+## Running the Project
 
-First, we have to download the documents from the Website with the script
+First, we need to download documents from the website using the following script:
 
 ```
 python scrape.py
 ```
 
-The above script will download the data using sitemap (with exclusions for some pages). But since we download the data from Website, to make our data more clean, we should strip all HTML tag. Lucky that the Mycos Website has well-structured (e.g. the content is always likely in `<main>` tag), with the help from `beautifulsoup4` Python library we can clean up with not much effort.
+This script retrieves data using a sitemap while excluding certain pages. Since the data comes from a website, we should clean it by removing all HTML tags. Fortunately, the Mycos website is well-structured (e.g., content is consistently placed within the `<main>` tag), making cleanup easier with the `beautifulsoup4` Python library.
 
-The result will be stored in `temp/scrape_storage` folder, in next step, we have to convert these documents into vector data (embedding).
-In this project, we use `nomic-ai/nomic-embed-text-v1.5` as text transformer model, you can try with another model you like!
-To do this, we run another script
+The processed data will be stored in the `temp/scrape_storage` folder. Next, we need to convert these documents into vector data (embeddings). 
+
+For this project, we use the `nomic-ai/nomic-embed-text-v1.5` model for text transformation, but feel free to experiment with other models! To generate embeddings, run the following script:
 
 ```
 python insert-vector-db.py
 ```
 
-This script is simple. It loads text files, convert this to embedding vector data, do the normalization (THIS IS IMPORTANT). Lastly, it inserts to Vector DB.
+This script is straightforward. It loads text files, converts them into embedding vectors, performs normalization (**which is crucial**), and finally inserts them into the VectorDB.
 
-OK, our DB is now ready! In this project, I utilize the Ollama with llama 3.2 model to create simple chatbot, you can start by running
+Now, our database is ready! This project utilizes Ollama with the `llama 3.2` model to create a simple chatbot. You can start the chatbot by running:
 
 ```
 python main.py
 ```
 
-## Visualize the Vector Data
+## Visualizing the Vector Data
 
-To visualize the vector DB, I use UMAP which is alternative, powerful ways to represent the multi-dimensional data (our vector data) to 2D plot.
+To visualize the VectorDB, I use UMAP, an alternative and powerful method for representing multi-dimensional data (our vector embeddings) in a 2D plot.
 
 ![Visualize the vector data with UMAP and sample prompt](screenshots/umap-sample.png)
 
-The sample prompt "I'm new graduate student looking for job" is encoded with same transformer we used for the raw documents. This plot is one way to visualize how much our data scatter, and how much it relates to prompt.
+For example, the sample prompt **"I'm a new graduate student looking for a job"** is encoded using the same transformer model we applied to the raw documents. This plot provides insight into how our data is distributed and how closely it relates to the given prompt.
 
 ![Running example chatbot](screenshots/example.png)
